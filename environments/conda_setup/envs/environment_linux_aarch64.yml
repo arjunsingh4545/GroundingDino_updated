@@ -1,0 +1,23 @@
+name: groundingdino_env
+channels:
+  - conda-forge
+  - defaults
+dependencies:
+  - python=3.10
+  - pytorch>=2.3.0
+  - torchvision
+  - gcc_linux-aarch64
+  - gxx_linux-aarch64
+  - ninja
+  - pip
+  - pip:
+      - transformers==4.38.2
+      - huggingface_hub
+      - addict
+      - yapf
+      - timm==0.9.16
+      - numpy
+      - opencv-python
+      - supervision>=0.22.0
+      - pycocotools
+      - scipy

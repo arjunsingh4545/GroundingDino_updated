@@ -1,0 +1,27 @@
+name: groundingdino_env
+channels:
+  - pytorch
+  - nvidia
+  - conda-forge
+  - defaults
+dependencies:
+  - python=3.10
+  - pytorch>=2.4.0
+  - torchvision
+  - pytorch-cuda=12.4
+  - cuda-toolkit=12.4
+  - gcc_linux-64
+  - gxx_linux-64
+  - ninja
+  - pip
+  - pip:
+      - transformers==4.38.2
+      - huggingface_hub
+      - addict
+      - yapf
+      - timm==0.9.16
+      - numpy
+      - opencv-python
+      - supervision>=0.22.0
+      - pycocotools
+      - scipy

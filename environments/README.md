@@ -9,12 +9,19 @@ This directory contains two independent setup options for the GroundingDINO envi
 
 ---
 
-## Option 1 — Conda
+## Option 1 — Conda (Linux & Windows)
 
 > **Prerequisite**: Conda (Miniconda / Anaconda) must be installed and on your `PATH`.
+> For Windows users, **Visual Studio Build Tools (MSVC)** must also be installed to compile the C++ extensions.
 
+**For Linux/macOS:**
 ```bash
 bash environments/conda_setup/setup.sh
+```
+
+**For Windows (Command Prompt):**
+```cmd
+environments\conda_setup\setup.bat
 ```
 
 After setup, activate the environment before running scripts:
@@ -25,8 +32,9 @@ python src/main.py --help
 ```
 
 **Files:**
-- [`conda_setup/setup.sh`](./conda_setup/setup.sh) — setup script
-- [`conda_setup/environment.yml`](./conda_setup/environment.yml) — conda environment spec
+- [`conda_setup/setup.sh`](./conda_setup/setup.sh) — setup script (Linux)
+- [`conda_setup/setup.bat`](./conda_setup/setup.bat) — setup script (Windows)
+- [`conda_setup/envs/`](./conda_setup/envs/) — architecture-specific conda environment specs (auto-selected)
 
 ---
 

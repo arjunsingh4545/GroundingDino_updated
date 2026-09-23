@@ -24,9 +24,14 @@ bash environments/pixi_setup/setup.sh
 ```
 
 ### Option B — Conda
-
+**For Linux/macOS:**
 ```bash
 bash environments/conda_setup/setup.sh
+```
+
+**For Windows (Command Prompt):**
+```cmd
+environments\conda_setup\setup.bat
 ```
 
 See [`environments/README.md`](environments/README.md) for full details on each option.

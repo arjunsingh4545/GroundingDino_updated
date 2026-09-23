@@ -33,10 +33,21 @@ CONDA_BASE=$(conda info --base)
 source "$CONDA_BASE/etc/profile.d/conda.sh"
 echo -e "${GREEN}✓ Conda initialized for bash.${NC}"
 
-# 3. Create or update conda environment
+# 3. Detect architecture and select environment file
+ARCH="$(uname -m)"
+if [ "$ARCH" = "x86_64" ]; then
+  ENV_FILE="$SCRIPT_DIR/envs/environment_linux_x86_64.yml"
+  echo -e "${GREEN}✓ Architecture detected: x86_64 (Linux)${NC}"
+elif [ "$ARCH" = "aarch64" ]; then
+  ENV_FILE="$SCRIPT_DIR/envs/environment_linux_aarch64.yml"
+  echo -e "${GREEN}✓ Architecture detected: aarch64 (Linux/Jetson)${NC}"
+else
+  echo -e "${RED}❌ Unsupported architecture: $ARCH. Only x86_64 and aarch64 are supported on Linux.${NC}"
+  exit 1
+fi
+
 ENV_NAME="groundingdino_env"
-ENV_FILE="$SCRIPT_DIR/environment.yml"
-echo -e "\n${YELLOW}⏳ Setting up the Conda environment '$ENV_NAME' from environment.yml...${NC}"
+echo -e "\n${YELLOW}⏳ Setting up the Conda environment '$ENV_NAME' from $(basename $ENV_FILE)...${NC}"
 if conda env list | grep -q "^$ENV_NAME\s"; then
   echo -e "${YELLOW}Environment already exists. Updating it...${NC}"
   conda env update -f "$ENV_FILE" --prune
