@@ -36,10 +36,10 @@ See [`environments/README.md`](environments/README.md) for full details on each 
 ### With Pixi
 
 ```bash
-pixi run --manifest-path environments/pixi_setup/pixi.toml python src/main.py --help
+pixi run python src/main.py --help
 
 # Or open an interactive shell:
-pixi shell --manifest-path environments/pixi_setup/pixi.toml
+pixi shell
 ```
 
 ### With Conda

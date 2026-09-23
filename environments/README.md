@@ -41,16 +41,16 @@ bash environments/pixi_setup/setup.sh
 After setup, run scripts through Pixi (from the project root):
 
 ```bash
-pixi run --manifest-path environments/pixi_setup/pixi.toml python src/main.py --help
+pixi run python src/main.py --help
 
 # Or drop into an interactive shell:
-pixi shell --manifest-path environments/pixi_setup/pixi.toml
+pixi shell
 ```
 
 **Files:**
 - [`pixi_setup/setup.sh`](./pixi_setup/setup.sh) — setup script
-- [`pixi_setup/pixi.toml`](./pixi_setup/pixi.toml) — pixi workspace spec (x86_64 + aarch64)
-- [`pixi_setup/pixi.lock`](./pixi_setup/pixi.lock) — resolved lock file
+- [`../pixi.toml`](../pixi.toml) — pixi workspace spec (x86_64 + aarch64)
+- [`../pixi.lock`](../pixi.lock) — resolved lock file
 
 ---
 

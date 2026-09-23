@@ -26,7 +26,6 @@ use tokio::io::AsyncWriteExt;
 
 // ── Emoji (falls back to text on non-unicode terminals) ─────────────────────
 
-static LOOKING_GLASS: Emoji<'_, '_> = Emoji("🔍 ", "");
 static DOWNLOAD: Emoji<'_, '_> = Emoji("📥 ", "");
 static CHECKMARK: Emoji<'_, '_> = Emoji("✅ ", "");
 static CROSS: Emoji<'_, '_> = Emoji("❌ ", "");
@@ -212,7 +211,7 @@ async fn main() {
 
     eprintln!(
         "  {}downloading {} variant(s) → {}/",
-        LOOKING_GLASS,
+        DOWNLOAD,
         style(selected.len()).cyan().bold(),
         style(cli.output.display()).cyan(),
     );

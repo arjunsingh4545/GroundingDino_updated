@@ -47,8 +47,8 @@ pycocotools = "*"
 scipy = "*"
 
 [tasks]
-# pixi.toml now lives in environments/pixi_setup/, so all paths are
-# relative to this directory (two levels below project root).
-build-ext = { cmd = "bash build_ext.sh", cwd = "../../groundingdino" }
-download-weights = { cmd = "python src/download_weights.py", cwd = "../.." }
+# Pixi's built-in task shell (deno_task_shell) doesn't support if/then/fi,
+# so the arch-detection logic lives in a real bash script instead.
+build-ext = { cmd = "bash build_ext.sh", cwd = "groundingdino" }
+download-weights = { cmd = "python src/download_weights.py" }
 setup = { depends-on = ["build-ext", "download-weights"] }

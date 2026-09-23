@@ -87,28 +87,43 @@ else
   fi
 fi
 
-# ── 4. Verify pixi.toml exists ──────────────────────────────────────────────
+# ── 4. Detect Rust + rust-script (optional — enables parallel downloads) ────
 echo ""
-MANIFEST_PATH="$SCRIPT_DIR/pixi.toml"
+USE_RUST=false
+if command -v rust-script &>/dev/null; then
+  success "rust-script detected — will use ${BOLD}Rust parallel downloader${NC}"
+  USE_RUST=true
+elif command -v cargo &>/dev/null; then
+  info "Rust found but rust-script missing. Installing rust-script..."
+  if cargo install rust-script 2>/dev/null; then
+    success "rust-script installed — will use ${BOLD}Rust parallel downloader${NC}"
+    USE_RUST=true
+  else
+    warn "Failed to install rust-script. Falling back to Python downloader."
+  fi
+else
+  info "Rust not found — using ${BOLD}Python downloader${NC} (install Rust for parallel downloads)"
+fi
+
+# ── 5. Verify pixi.toml exists ──────────────────────────────────────────────
+echo ""
+MANIFEST_PATH="$PROJECT_ROOT/pixi.toml"
 if [ ! -f "$MANIFEST_PATH" ]; then
   fail "pixi.toml not found at $MANIFEST_PATH"
 fi
 success "Found pixi.toml"
 
-# ── 5. Resolve packages & build ─────────────────────────────────────────────
-echo ""
-info "Resolving packages and building the environment..."
-info "This may take several minutes on the first run."
-echo ""
 
-if pixi run --manifest-path "$MANIFEST_PATH" setup; then
-  echo ""
-  success "Pixi environment built and all tasks completed!"
-else
+
+# ── 7. Build C++ extensions ─────────────────────────────────────────────────
+echo ""
+info "Building GroundingDINO C++ CUDA extensions..."
+echo ""
+if ! pixi run --manifest-path "$MANIFEST_PATH" build-ext; then
   EXIT_CODE=$?
   echo ""
   echo -e "${RED}━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━${NC}"
-  echo -e "${RED}  ⚠  Build failed (exit code $EXIT_CODE)${NC}"
+  echo -e "${RED}  ⚠  C++ extension build failed (exit code $EXIT_CODE)${NC}"
   echo -e "${RED}━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━${NC}"
   echo ""
   echo -e "${YELLOW}Common causes & fixes:${NC}"
@@ -122,17 +137,39 @@ else
   echo -e "     On Ubuntu/Debian:  ${CYAN}sudo apt-get install -y build-essential${NC}"
   echo -e ""
   echo -e "  4. ${BOLD}Network issues${NC}: Package resolution requires internet access."
-  echo -e "     Retry with:  ${CYAN}pixi run --manifest-path environments/pixi_setup/pixi.toml setup${NC}"
+  echo -e "     Retry with:  ${CYAN}pixi run build-ext${NC}"
   echo -e ""
   echo -e "  5. ${BOLD}Stale lock file${NC}: Delete and re-resolve."
-  echo -e "     ${CYAN}rm environments/pixi_setup/pixi.lock && pixi run --manifest-path environments/pixi_setup/pixi.toml setup${NC}"
+  echo -e "     ${CYAN}rm pixi.lock && pixi run build-ext${NC}"
   echo ""
   exit $EXIT_CODE
 fi
+echo ""
+success "C++ extensions built successfully!"
 
-PIXI_FLAG="--manifest-path environments/pixi_setup/pixi.toml"
+# ── 8. Download model weights (Rust parallel or Python sequential) ───────────
+echo ""
+if [ "$USE_RUST" = true ]; then
+  info "Downloading weights with ${BOLD}Rust parallel downloader${NC}..."
+  echo ""
+  if rust-script "$PROJECT_ROOT/src/download_weights.rs"; then
+    success "Weights downloaded (parallel)!"
+  else
+    warn "Rust downloader failed — retrying with Python fallback..."
+    pixi run --manifest-path "$MANIFEST_PATH" download-weights || fail "Weight download failed."
+    success "Weights downloaded (Python fallback)!"
+  fi
+else
+  info "Downloading weights with ${BOLD}Python downloader${NC}..."
+  echo ""
+  if pixi run --manifest-path "$MANIFEST_PATH" download-weights; then
+    success "Weights downloaded!"
+  else
+    fail "Weight download failed."
+  fi
+fi
 
-# ── 6. Success banner & usage guide ─────────────────────────────────────────
+# ── 9. Success banner & usage guide ─────────────────────────────────────────
 echo ""
 echo -e "${BLUE}━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━${NC}"
 echo -e "${GREEN}  🎉 Setup Complete! The environment is ready.${NC}"
@@ -141,23 +178,22 @@ echo ""
 echo -e "${BOLD}How to run scripts (from project root):${NC}"
 echo ""
 echo -e "  ${CYAN}# Run the main inference script${NC}"
-echo -e "  ${YELLOW}pixi run $PIXI_FLAG python src/main.py --help${NC}"
+echo -e "  ${YELLOW}pixi run python src/main.py --help${NC}"
 echo ""
 echo -e "  ${CYAN}# Run any Python file inside the Pixi environment${NC}"
-echo -e "  ${YELLOW}pixi run $PIXI_FLAG python src/<your_script>.py${NC}"
+echo -e "  ${YELLOW}pixi run python src/<your_script>.py${NC}"
 echo ""
 echo -e "  ${CYAN}# Open an interactive shell with the environment activated${NC}"
-echo -e "  ${YELLOW}pixi shell $PIXI_FLAG${NC}"
+echo -e "  ${YELLOW}pixi shell${NC}"
 echo ""
 echo -e "  ${CYAN}# Re-run the full build (extensions + weight download)${NC}"
-echo -e "  ${YELLOW}pixi run $PIXI_FLAG setup${NC}"
+echo -e "  ${YELLOW}pixi run setup${NC}"
 echo ""
 echo -e "  ${CYAN}# Re-build only the C++ CUDA extensions${NC}"
-echo -e "  ${YELLOW}pixi run $PIXI_FLAG build-ext${NC}"
+echo -e "  ${YELLOW}pixi run build-ext${NC}"
 echo ""
 echo -e "  ${CYAN}# Re-download model weights only${NC}"
-echo -e "  ${YELLOW}pixi run $PIXI_FLAG download-weights${NC}"
+echo -e "  ${YELLOW}pixi run download-weights${NC}"
 echo ""
 echo -e "${BLUE}━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━${NC}"
 echo ""
-
