@@ -1,0 +1,54 @@
+[workspace]
+name = "groundingdino-env"
+version = "0.1.0"
+description = "GroundingDINO Pixi environment (Workstation + Jetson)"
+authors = ["Arjun Singh Vasir"]
+# Conda-forge must be first to resolve C-library dependencies like libjpeg-turbo
+channels = ["conda-forge", "pytorch", "nvidia"]
+platforms = ["linux-64", "linux-aarch64"]
+
+[dependencies]
+python = "3.10.*"
+ninja = "*"
+pip = "*"
+
+# ---------------------------------------------------------
+# WORKSTATION SETUP (x86_64)
+# ---------------------------------------------------------
+[target.linux-64.dependencies]
+# We explicitly force these to use the 'pytorch' and 'nvidia' channels
+pytorch = { version = ">=2.4.0", channel = "pytorch" }
+torchvision = { channel = "pytorch" }
+pytorch-cuda = { version = "12.4.*", channel = "pytorch" }
+cuda-toolkit = { version = "12.4.*", channel = "nvidia" }
+gcc_linux-64 = "*"
+gxx_linux-64 = "*"
+
+# ---------------------------------------------------------
+# JETSON EDGE SETUP (aarch64)
+# ---------------------------------------------------------
+[target.linux-aarch64.dependencies]
+# For aarch64, we let it pull naturally from conda-forge (which is now priority #1)
+pytorch = ">=2.3.0"
+torchvision = "*"
+gcc_linux-aarch64 = "*"
+gxx_linux-aarch64 = "*"
+
+[pypi-dependencies]
+transformers = "==4.38.2"
+huggingface_hub = "*"
+addict = "*"
+yapf = "*"
+timm = "==0.9.16"
+numpy = "*"
+opencv-python = "*"
+supervision = ">=0.22.0"
+pycocotools = "*"
+scipy = "*"
+
+[tasks]
+# pixi.toml now lives in environments/pixi_setup/, so all paths are
+# relative to this directory (two levels below project root).
+build-ext = { cmd = "bash build_ext.sh", cwd = "../../groundingdino" }
+download-weights = { cmd = "python src/download_weights.py", cwd = "../.." }
+setup = { depends-on = ["build-ext", "download-weights"] }
